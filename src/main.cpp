@@ -92,6 +92,9 @@ int main()
         std::cout << "ERROR::SHADERPROGRAM::LINKING_FAILED\n" << info_log;
     }
 
+    glDeleteShader(vertex_shader);
+    glDeleteShader(fragment_shader);
+
     float vertices[] = 
         {
             -.5f, -.5f, .0f,
@@ -101,16 +104,27 @@ int main()
 
     unsigned int vertex_buffer_object;
     glGenBuffers(1, &vertex_buffer_object);
+
+    unsigned int vertex_array_object;
+    glGenVertexArrays(1, &vertex_array_object);
+
+    glBindVertexArray(vertex_array_object);
+
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_object);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
 
-    
     while(!glfwWindowShouldClose(window))
     {
         processInput(window);
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        glUseProgram(shader_program);
+        glBindVertexArray(vertex_array_object);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
