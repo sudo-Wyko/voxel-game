@@ -1,5 +1,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb/stb_image.h>
 
 #include <voxel_game/shader.h>
 
@@ -41,16 +43,21 @@ int main()
     Shader shader("shaders/basic.vs", "shaders/basic.fs");
 
     float vertices[] = 
-    {
-         0.5f, -0.5f, 0.0f,     1.0f, 0.0f, 0.0f,// bot right 
-        -0.5f, -0.5f, 0.0f,     0.0f, 1.0f, 0.0f,// bot left
-         0.0f,  0.5f, 0.0f,     0.0f, 0.0f, 1.0f,// top middle
-    };
+        {
+            -0.5f, -0.5f, 0.0f,     0.0f, 0.0f, //bot left
+            -0.5f,  0.5f, 0.0f,     0.0f, 1.0f, //top left
+             0.5f, -0.5f, 0.0f,     1.0f, 0.0f, //bot right 
+             0.5f,  0.5f, 0.0f,     1.0f, 1.0f, //top right
+        };
 
     unsigned int indices[] = 
         {
-            0, 2, 1,
+            0, 1, 2,
+            2, 3, 1
         };
+
+    unsigned int texture;
+    glGenTextures(1, &texture);
 
     unsigned int vertex_buffer_object;
     glGenBuffers(1, &vertex_buffer_object);
@@ -61,6 +68,8 @@ int main()
     unsigned int element_buffer_object;
     glGenBuffers(1, &element_buffer_object);
 
+    glBindTexture(GL_TEXTURE_2D, texture);
+
     glBindVertexArray(vertex_array_object);
 
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_object);
@@ -69,11 +78,35 @@ int main()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer_object);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    stbi_set_flip_vertically_on_load(true);
+
+    int texture_width;
+    int texture_height;
+    int nr_channels;
+
+    unsigned char* data = stbi_load("assets/textures/blocks/grass_block_side.png", &texture_width, &texture_height, &nr_channels, 0);
+    if(!data) 
+    {
+        std::cout << "ERROR::TEXTURE::FAILED_TO_LOAD" << std::endl;
+    }
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture_width, texture_height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    stbi_image_free(data);
 
     while(!glfwWindowShouldClose(window))
     {
