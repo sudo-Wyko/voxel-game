@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 
 #include <iostream>
+#include <cmath>
 
 void processInput(GLFWwindow* window) 
 {
@@ -37,16 +38,20 @@ int main()
     // ----------------------------------------------------- //
     const char *vertex_shader_source = "#version 330 core\n"
         "layout(location = 0) in vec3 a_pos;\n"
+        "layout(location = 1) in vec3 a_color;\n"
+        "out vec3 vertex_color;\n"
         "void main()\n"
         "{\n"
-        "gl_Position = vec4(a_pos.x, a_pos.y, a_pos.z, 1.0);\n"
+        "gl_Position = vec4(a_pos, 1.0);\n"
+        "vertex_color = a_color;\n"
         "}\0";
 
     const char *fragment_shader_source = "#version 330 core\n"
         "out vec4 frag_color;\n"
+        "in vec3 vertex_color;\n"
         "void main()\n"
         "{\n"
-        "frag_color= vec4(1.f, .5f, .2f, 1.f);\n"
+        "frag_color = vec4(vertex_color, 1.0);\n"
         "}\0";
 
     int success;
@@ -97,16 +102,14 @@ int main()
 
     float vertices[] = 
         {
-            .5f, .5f, .0f, // top right
-            .5f, -.5f, .0f, // bot right
-            -.5f, .5f, .0f, // top left
-            -.5f, -.5f, .0f, // bot left
+             0.5f, -0.5f, 0.0f,     1.0f, 0.0f, 0.0f,// bot right 
+            -0.5f, -0.5f, 0.0f,     0.0f, 1.0f, 0.0f,// bot left
+             0.0f,  0.5f, 0.0f,     0.0f, 0.0f, 1.0f,// top middle
         };
 
     unsigned int indices[] = 
         {
-            0, 1, 2,
-            2, 3, 1
+            0, 2, 1,
         };
 
     unsigned int vertex_buffer_object;
@@ -126,8 +129,11 @@ int main()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer_object);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     while(!glfwWindowShouldClose(window))
     {
@@ -136,6 +142,7 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
 
         glUseProgram(shader_program);
+
         glBindVertexArray(vertex_array_object);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
