@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_executable (voxel-game
     src/main.cpp
     src/glad.c
+    src/shader.cpp
 )
 
 target_include_directories(voxel-game PRIVATE include)

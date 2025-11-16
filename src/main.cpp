@@ -1,8 +1,9 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include <voxel_game/shader.h>
+
 #include <iostream>
-#include <cmath>
 
 void processInput(GLFWwindow* window) 
 {
@@ -36,76 +37,15 @@ int main()
     glViewport(0, 0, 800, 600);
 
     // ----------------------------------------------------- //
-    const char *vertex_shader_source = "#version 330 core\n"
-        "layout(location = 0) in vec3 a_pos;\n"
-        "layout(location = 1) in vec3 a_color;\n"
-        "out vec3 vertex_color;\n"
-        "void main()\n"
-        "{\n"
-        "gl_Position = vec4(a_pos, 1.0);\n"
-        "vertex_color = a_color;\n"
-        "}\0";
 
-    const char *fragment_shader_source = "#version 330 core\n"
-        "out vec4 frag_color;\n"
-        "in vec3 vertex_color;\n"
-        "void main()\n"
-        "{\n"
-        "frag_color = vec4(vertex_color, 1.0);\n"
-        "}\0";
-
-    int success;
-    char info_log[512];
-
-    unsigned int vertex_shader;
-    vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertex_shader, 1, &vertex_shader_source, NULL);
-    glCompileShader(vertex_shader);
-
-    glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &success);
-
-    if(!success)
-    {
-        glGetShaderInfoLog(vertex_shader, 512, NULL, info_log);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILIATION_FAILED\n" << info_log;
-    }
-
-    unsigned int fragment_shader;
-    fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragment_shader, 1, &fragment_shader_source, NULL);
-    glCompileShader(fragment_shader);
-
-    glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &success);
-
-    if(!success)
-    {
-        glGetShaderInfoLog(fragment_shader, 512, NULL, info_log);
-        std::cout << "ERROR::SHADER::FRAGMENT::COMPILIATION_FAILED\n" << info_log;
-    }
-
-    unsigned int shader_program;
-    shader_program = glCreateProgram();
-    glAttachShader(shader_program, vertex_shader);
-    glAttachShader(shader_program, fragment_shader);
-    glLinkProgram(shader_program);
-
-    glGetProgramiv(shader_program, GL_LINK_STATUS, &success);
-
-    if(!success)
-    {
-        glGetShaderInfoLog(shader_program, 512, NULL, info_log);
-        std::cout << "ERROR::SHADERPROGRAM::LINKING_FAILED\n" << info_log;
-    }
-
-    glDeleteShader(vertex_shader);
-    glDeleteShader(fragment_shader);
+    Shader shader("shaders/basic.vs", "shaders/basic.fs");
 
     float vertices[] = 
-        {
-             0.5f, -0.5f, 0.0f,     1.0f, 0.0f, 0.0f,// bot right 
-            -0.5f, -0.5f, 0.0f,     0.0f, 1.0f, 0.0f,// bot left
-             0.0f,  0.5f, 0.0f,     0.0f, 0.0f, 1.0f,// top middle
-        };
+    {
+         0.5f, -0.5f, 0.0f,     1.0f, 0.0f, 0.0f,// bot right 
+        -0.5f, -0.5f, 0.0f,     0.0f, 1.0f, 0.0f,// bot left
+         0.0f,  0.5f, 0.0f,     0.0f, 0.0f, 1.0f,// top middle
+    };
 
     unsigned int indices[] = 
         {
@@ -141,7 +81,7 @@ int main()
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glUseProgram(shader_program);
+        shader.Use();
 
         glBindVertexArray(vertex_array_object);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
